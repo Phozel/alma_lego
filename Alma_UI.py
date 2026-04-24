@@ -2,8 +2,13 @@ import os
 import sys
 import tkinter as tk
 from tkinter import ttk
+
+import numpy as np
 from PIL import Image, ImageTk
 from AT_functions import AnimatedGIF, VideoPlayer
+from functions import functions2run
+from functions import vriCalc
+from functions.vriCalc import observationManager
 
 
 # Class that creates and populates a UI for LEGO ALMA
@@ -248,6 +253,47 @@ class ALMA_UI:
         progress_bar["maximum"] = 100
         progress_bar["value"] = 100
         progress_bar.place(x=1155, y=950)
+
+
+        # Put this as its own method/whatever
+        # declare following outside loop ser=functions2run.getserialinterface()
+        # Change None to ser
+        # Loop the code
+        # button and antenna input in functions2run, create some way to change them for testing purposes
+        bit_pos1, bit_pos2, buttons_config, buttons_image, ant_pos, xx_antpos, yy_antpos, singledish, fller = functions2run.waitforserialchange(
+            None, IsThereArdruino=False)
+        print("ant", ant_pos)
+        print("bit1", bit_pos1)
+        print("bit2", bit_pos2)
+        imagefile, pixel_scale, integration_time, hourangle, \
+            hourangle_start, hourangle_end = \
+            functions2run.select_model_and_hourangle(bit_pos2, buttons_config, buttons_image)
+
+
+        functions2run.write_alma_config_file(ant_pos)
+        obsMan = observationManager(verbose=False, debug=True)
+        obsMan.get_available_arrays()
+        obsMan.select_array('ALMA_Custom-lego-alma', haStart=hourangle_start, haEnd=hourangle_end, sampRate_s=300)
+        obsMan.get_selected_arrays()
+        obsMan.set_obs_parms(3e5, -40)
+        obsMan.calc_uvcoverage()
+        obsMan.load_model_image(imagefile)
+        obsMan.set_pixscale(pixel_scale)
+        obsMan.invert_model()
+        obsMan.grid_uvcoverage()
+        obsMan.calc_beam()
+        obsMan.invert_observation()
+        data = np.real(obsMan.obsImgArr)
+        #data = np.array(data * 255 / np.max(data)).astype(np.uint8)
+        data = np.array(data)
+        print(data.shape)
+        data_img = Image.fromarray(data, mode="L")
+        photo_data_img = ImageTk.PhotoImage(data_img)
+        data_img.save("AT_assets/images/test.png")
+        image_temp = Image.open(self.__load_asset("images/antenna icon 1.png"))
+        photo_data_img_kldsjf = ImageTk.PhotoImage(image_temp)
+        self.canvas.create_image(0,0, image=photo_data_img_kldsjf, anchor="nw")
+        #
 
         self.view_occupied = True
 

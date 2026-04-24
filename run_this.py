@@ -51,7 +51,7 @@ LOOP_TIME = 0.1  # seconds
 antenna_lim_min, antenna_lim_max = -3000, 3000
 
 FREQ = 3e5  # MHz
-DEC  = -40  # declination
+DEC  = -40  # declinationF
 
 Serial  = False  # True = Arduino attached
 verbose = True

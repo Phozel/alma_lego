@@ -7,7 +7,7 @@ import matplotlib.animation as animation
 import pandas as pd
 from astropy.io import ascii
 import time
-from vriCalc import observationManager
+from functions.vriCalc import observationManager
 from astropy.convolution import Gaussian2DKernel,convolve
 from scipy.ndimage import gaussian_filter
 import matplotlib.image as mpimg
