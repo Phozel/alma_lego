@@ -32,9 +32,9 @@ FREQ = 3e5 #MHz
 DEC = -40 #declination
 pixel_scale = 0.05 #arcseconds
 
-buttons_inp = "0100100"
+buttons_inp = "0101000"
 attenas_inp = "0000000000000000000000001000000000001000000000"
-
+#attenas_inp = "1111111111111111111111111111111111111111111111"
 imagefile1 = "./image/agb_star.jpg"
 imagefile2 = "./image/galaxy_gas.jpg"
 imagefile3 = "./image/hltau.jpg"

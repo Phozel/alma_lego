@@ -9,6 +9,7 @@ from AT_functions import AnimatedGIF, VideoPlayer
 from functions import functions2run
 from functions import vriCalc
 from functions.vriCalc import observationManager
+import matplotlib.cm as cm
 
 
 # Class that creates and populates a UI for LEGO ALMA
@@ -196,7 +197,7 @@ class ALMA_UI:
         # Selected object illustration rectangle
         self.canvas.create_rectangle(269, 63, 528, 324, fill='#000000', outline="#ffffff", width="3.0")
         # Information/Guide GIF rectangle
-        self.canvas.create_rectangle(156, 670, 641, 1013, fill='#000000', outline="#ffffff", width="3.0")
+        #self.canvas.create_rectangle(156, 670, 641, 1013, fill='#000000', outline="#ffffff", width="3.0")
         # Observation Rectangle
         self.canvas.create_rectangle(794, 63, 1744, 1013, fill='#141414', outline="#ffffff", width="3.0")
 
@@ -308,12 +309,12 @@ class ALMA_UI:
         obsMan.calc_beam()
         obsMan.invert_observation()
         data = np.real(obsMan.obsImgArr)
-        data = np.array(data * 255 / np.max(data)).astype(np.uint8)
-        #data = np.array(data)
-        print(data.shape)
-        data_img = Image.fromarray(data)
+        norm_data = data / np.max(data)
+        colored_data = cm.inferno(norm_data)
+        colored_data = (colored_data[:, :, :3] * 255).astype(np.uint8)
+        data_img = Image.fromarray(colored_data)
         self.canvas.photo_data_img = ImageTk.PhotoImage(data_img)
-        self.canvas.create_image(0, 0, image=self.canvas.photo_data_img, anchor="nw")
+        self.canvas.create_image(909, 150, image=self.canvas.photo_data_img, anchor="nw")
         #
 
 
