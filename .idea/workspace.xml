@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e60d21c9-3d9d-4249-a591-21d221a1b34c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/AT_run_this.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/functions/AT_run_this.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Alma_UI.py" beforeDir="false" afterPath="$PROJECT_DIR$/Alma_UI.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/functions/functions2run.py" beforeDir="false" afterPath="$PROJECT_DIR$/functions/functions2run.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

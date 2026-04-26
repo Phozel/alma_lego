@@ -67,6 +67,12 @@ bitdict_image = {'agb_star': 3,
 
 antenna_filename = 'sid_ant_latest.csv'
 
+def get_attenas_string():
+    return attenas_inp
+
+def get_buttons_inp():
+    return buttons_inp
+
 def get_antenna_dict():
     ant_database = pd.read_csv(antenna_filename, sep=";", header='infer')
     ant_bits = np.array(ant_database['bit']) +1
