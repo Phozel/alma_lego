@@ -3,6 +3,7 @@ import sys
 import tkinter as tk
 from tkinter import ttk
 
+import keyboard
 import numpy as np
 from PIL import Image, ImageTk
 from AT_functions import AnimatedGIF, VideoPlayer
@@ -19,6 +20,12 @@ class ALMA_UI:
     window = None
     canvas = None
     view_occupied = False
+    views = ["video_view",
+             "guide_view",
+             "selection_view",
+             "observation_view",
+             "restart_view"]
+    current_view_index = 0
 
     def __init__(self):
         self.window = tk.Tk()
@@ -36,6 +43,9 @@ class ALMA_UI:
             relief="ridge"
         )
         self.canvas.place(x=0, y=0)
+        self.window.bind_all("q", self.__close_window)
+        self.window.bind_all("n", self.__next_view)
+        self.window.bind_all("p", self.__previous_view)
         self.__start()
 
     def __load_asset(self, path):
@@ -46,6 +56,7 @@ class ALMA_UI:
     def __start(self):
         self.change_view("observation_view")
         self.window.resizable(False, False)
+
         self.window.mainloop()
 
     # Method that switches the contents of the window to select preset views
@@ -98,7 +109,7 @@ class ALMA_UI:
         )
 
         self.canvas.create_rectangle(234, 433, 554, 775, fill='#000000', outline="#fff9f9", width="2.0")
-        img_8 = Image.open(self.__load_asset("images\\galaxy_img\\Galaxy 43.png"))
+        img_8 = Image.open(self.__load_asset("images/galaxy_img/Galaxy 43.png"))
         img_8 = img_8.resize((312, 312), Image.LANCZOS)  # <- new size here
         galaxy_img = ImageTk.PhotoImage(img_8)
         self.canvas.create_image(394, 604, image=galaxy_img)
@@ -243,7 +254,7 @@ class ALMA_UI:
                         bordercolor="white",
                         lightcolor="green",
                         darkcolor="green")
-        progress_bar = ttk.Progressbar(self.window,
+        progress_bar = ttk.Progressbar(self.canvas,
                                        style="Custom.Horizontal.TProgressbar",
                                        orient="horizontal",
                                        length=370,
@@ -316,4 +327,15 @@ class ALMA_UI:
         self.canvas.photo_data_img = ImageTk.PhotoImage(data_img)
         self.canvas.create_image(909, 150, image=self.canvas.photo_data_img, anchor="nw")
         #
+
+    def __close_window(self, event=None):
+        self.window.destroy()
+
+    def __next_view(self, event=None):
+        self.current_view_index = (self.current_view_index + 1) % len(self.views)
+        self.change_view(self.views[self.current_view_index])
+
+    def __previous_view(self, event=None):
+        self.current_view_index = (self.current_view_index - 1) % len(self.views)
+        self.change_view(self.views[self.current_view_index])
 
