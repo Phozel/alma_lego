@@ -202,7 +202,7 @@ class ALMA_UI:
         self.canvas.create_rectangle(794, 63, 1744, 1013, fill='#141414', outline="#ffffff", width="3.0")
 
         place_gif = AnimatedGIF(self.canvas,
-                    "AT_assets\\gifs\\placing-antennas.gif",
+                    "AT_assets/gifs/placing-antennas.gif",
                     398, 843,
                     size=(449, 343))
 
@@ -317,5 +317,3 @@ class ALMA_UI:
         self.canvas.create_image(909, 150, image=self.canvas.photo_data_img, anchor="nw")
         #
 
-
-app = ALMA_UI()
