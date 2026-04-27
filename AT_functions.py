@@ -145,45 +145,53 @@ class VideoPlayer:
         if self.image_item:
             self.canvas.delete(self.image_item)
 
-# Class that handles video playing
-# Created by Adam Wikström - 2026-04-20
-class ProgressBarWidget:
-    def __init__(self, parent, max_value=100, label_text=None):
+# Class that handles the progress bar
+# Created by Adam Wikström - 2026-04-27
+class CanvasProgressBar:
+    def __init__(self, canvas, x, y, width=370, height=20, max_value=100,
+                 bg="#151414", fg="#00EE00", outline="white"):
+
+        self.canvas = canvas
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
         self.max_value = max_value
+
         self.value = 0
 
-        # Container frame (so it behaves like a widget)
-        self.frame = tk.Frame(parent)
-        self.frame.pack(fill="x", pady=5)
-
-        # Label
-        self.label = tk.Label(self.frame, text=label_text)
-        self.label.pack(anchor="w")
-
-        # Progress bar
-        self.progress = ttk.Progressbar(
-            self.frame,
-            orient="horizontal",
-            length=370,
-            mode="determinate",
-            maximum=max_value
+        # Background bar
+        self.bg_rect = canvas.create_rectangle(
+            x, y,
+            x + width, y + height,
+            fill=bg,
+            outline=outline
         )
-        self.progress.pack(fill="x", padx=5, pady=2)
 
-    def set(self, value, text=None):
-        """Set progress to a specific value"""
-        self.value = value
-        self.progress["value"] = value
+        # Foreground (progress fill)
+        self.fg_rect = canvas.create_rectangle(
+            x, y,
+            x, y + height,
+            fill=fg,
+            outline=""
+        )
 
-        if text:
-            self.label.config(text=text)
+    def set(self, value):
+        self.value = max(0, min(self.max_value, value))
+        fill_width = (self.value / self.max_value) * self.width
 
-        self.frame.update_idletasks()
+        self.canvas.coords(
+            self.fg_rect,
+            self.x, self.y,
+            self.x + fill_width, self.y + self.height
+        )
 
-    def step(self, amount=1, text=None):
-        """Increment progress"""
-        self.set(self.value + amount, text)
+    def step(self, amount=1):
+        self.set(self.value + amount)
 
-    def reset(self):
-        """Reset progress"""
-        self.set(0)
+    def destroy(self):
+        self.canvas.delete(self.bg_rect)
+        self.canvas.delete(self.fg_rect)
+
+
+
