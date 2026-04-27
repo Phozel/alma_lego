@@ -80,7 +80,7 @@ class ALMA_UI:
         self.antenna_state = functions2run.get_attenas_string()
         self.button_state = functions2run.get_buttons_inp()
         self.max_antennas = 42
-        self.current_antennas = 0
+        self.current_antennas = self.antenna_state.count("1")
         self.state_counter = 0
 
         self.view_switching = False
@@ -98,7 +98,7 @@ class ALMA_UI:
         return os.path.join(assets, path)
 
     def __start(self):
-        self.change_view("observation_view")
+        self.change_view(self.state)
 
         self.start_serial_loop()
 
@@ -138,7 +138,7 @@ class ALMA_UI:
 
     # Method that creates the content for the video view
     def __video_view(self):
-        video = VideoPlayer(self.canvas, "AT_assets\\video\\ALMA-WSU-9_2.mp4", 960, 499, size=(1703, 958))
+        video = VideoPlayer(self.canvas, "AT_assets/video/ALMA-WSU-9_2.mp4", 960, 499, size=(1703, 958))
         self.canvas.create_rectangle(262, 949, 1659, 1080,
                                 fill='#eee9e9',
                                 outline="#eeb005",
@@ -185,7 +185,7 @@ class ALMA_UI:
         )
 
         self.canvas.create_rectangle(609, 433, 929, 775, fill='#000000', outline="#fff9f9", width="2.0")
-        img_9 = Image.open(self.__load_asset("images\\disc_img\\Disk_43.png"))
+        img_9 = Image.open(self.__load_asset("images/disc_img/Disk_43.png"))
         img_9 = img_9.resize((312, 312), Image.LANCZOS)  # <- new size here
         disc_img = ImageTk.PhotoImage(img_9)
         self.canvas.create_image(769, 604, image=disc_img)
@@ -201,7 +201,7 @@ class ALMA_UI:
         )
 
         self.canvas.create_rectangle(983, 433, 1303, 775, fill='#000000', outline="#fff9f9", width="2.0")
-        img_10 = Image.open(self.__load_asset("images\\star_img\\star_43.png"))
+        img_10 = Image.open(self.__load_asset("images/star_img/star_43.png"))
         img_10 = img_10.resize((312, 312), Image.LANCZOS)  # <- new size here
         star_img = ImageTk.PhotoImage(img_10)
         self.canvas.create_image(1143, 604, image=star_img)
@@ -217,7 +217,7 @@ class ALMA_UI:
         )
 
         self.canvas.create_rectangle(1357, 433, 1677, 775, fill='#000000', outline="#fff9f9", width="2.0")
-        img_11 = Image.open(self.__load_asset("images\\jet_img\\Jet_43.png"))
+        img_11 = Image.open(self.__load_asset("images/jet_img/Jet_43.png"))
         img_11 = img_11.resize((312, 312), Image.LANCZOS)  # <- new size here
         jet_img = ImageTk.PhotoImage(img_11)
         self.canvas.create_image(1517, 604, image=jet_img)
@@ -235,7 +235,7 @@ class ALMA_UI:
         arrow_pos = [105, 226, 339, 463]
         arrow_images = []
         for i in range(4):
-            temp_image = Image.open(self.__load_asset("gifs\\Arrow_blink.gif"))
+            temp_image = Image.open(self.__load_asset("gifs/Arrow_blink.gif"))
             temp_image = temp_image.convert("RGBA")
             temp_image = temp_image.resize((184, 130), Image.LANCZOS)  # <- new size here
             temp_image = temp_image.rotate(76, expand=True)
@@ -257,7 +257,7 @@ class ALMA_UI:
         )
 
         AnimatedGIF(self.canvas,
-                    "AT_assets\\gifs\\placing-antennas.gif",
+                    "AT_assets/gifs/placing-antennas.gif",
                     959, 729,
                     size=(1279, 904))  # Added 2026-04-20 - Adam W
         self.view_occupied = True
@@ -278,7 +278,7 @@ class ALMA_UI:
         #             size=(449, 343))
 
         spread_gather_gif = AnimatedGIF(self.canvas,
-                                        "AT_assets\\gifs\\spread_and_gather_antennas-updated.gif",
+                                        "AT_assets/gifs/spread_and_gather_antennas-updated.gif",
                                         415, 843,
                                         size=(449, 343))
         spread_gather_gif.set_speed(1.3)
@@ -324,8 +324,7 @@ class ALMA_UI:
             height=20,
             max_value=1
         )
-
-        self.progress_bar.set(self.current_antennas/self.max_antennas)
+        # self.progress_bar.set(self.current_antennas / self.max_antennas)
 
         self.view_occupied = True
 
@@ -341,7 +340,7 @@ class ALMA_UI:
         )
 
         AnimatedGIF(self.canvas,
-                    "AT_assets\\gifs\\remove-antennas.gif",
+                    "AT_assets/gifs/remove-antennas.gif",
                     959, 644,
                     size=(1455, 1028))  # Added 2026-04-20 - Adam W
         self.view_occupied = True
@@ -408,34 +407,38 @@ class ALMA_UI:
 
             current_state = functions2run.waitforserialchange(self.ser, IsThereArdruino=False)
 
-            if self.states_equal(current_state, self.last_state) and self.state_counter == 0:
+            if (self.current_view == "observation_view" and
+                    self.states_equal(current_state, self.last_state) and 
+                    self.state_counter == 0):
                 self.window.after(0, lambda s=current_state: self.create_observation(s))
+                self.progress_bar.set(self.current_antennas / self.max_antennas)
                 self.state_counter += 1
             if not self.states_equal(current_state, self.last_state):
                 self.last_state = current_state
-                # self.latest_state = current_state
+                self.latest_state = current_state
                 self.window.after(0, self.reset_idle_timer)
-                self.window.after(0, self.fsm_update(current_state))
+                self.window.after(0, self.fsm_update())
 
-                # The following code was moved to fsm_update but kept here for saftey reasons
-                # if self.current_view == "observation_view" and not self.view_switching:
-                #     count = functions2run.get_attenas_string().count("1")
-                #     self.current_antennas = count
-                #     self.canvas.itemconfig(self.antenna_text_id, text=f"{self.current_antennas}/{self.max_antennas}")
-                #
-                #     # Check for update in antenna count, and if it has increased play click sound
-                #     if (self.antenna_state is not functions2run.get_attenas_string()
-                #             and self.antenna_state.count("1") > functions2run.get_attenas_string().count("1")):
-                #         self.antenna_state = functions2run.get_attenas_string()
-                #         self.window.after(0, self.play_click_sound)
-                #     else:
-                #         self.antenna_state = functions2run.get_attenas_string()
-                #
-                #     self.progress_bar.set(self.current_antennas / self.max_antennas)
-                #     self.window.after(0, lambda s=current_state: self.create_observation(s))
+                # Update graph if not view switching
+                if self.current_view == "observation_view" and not self.view_switching:
+                    count = functions2run.get_attenas_string().count("1")
+                    self.current_antennas = count
+                    self.canvas.itemconfig(self.antenna_text_id, text=f"{self.current_antennas}/{self.max_antennas}")
+
+                    # Check for update in antenna count, and if it has increased play click sound
+                    if (self.antenna_state is not functions2run.get_attenas_string()
+                            and self.antenna_state.count("1") > functions2run.get_attenas_string().count("1")):
+                        self.antenna_state = functions2run.get_attenas_string()
+                        self.window.after(0, self.play_click_sound)
+                        self.progress_bar.set(self.current_antennas / self.max_antennas)
+                    else:
+                        self.antenna_state = functions2run.get_attenas_string()
+                        self.progress_bar.set(self.current_antennas / self.max_antennas)
+
+                    self.window.after(0, lambda s=current_state: self.create_observation(s))
 
     # Method to handle the finite state machine
-    def fsm_update(self, current_state):
+    def fsm_update(self):
         attenas = functions2run.get_attenas_string()
         buttons = functions2run.get_buttons_inp()
 
@@ -463,24 +466,7 @@ class ALMA_UI:
         # OBSERVATION STATE
         elif self.state == "observation_view":
             # TO-DO check if live updating of antenna % works on progressbar
-            # Update graph if not view switching
-            if not self.view_switching:
-                count = functions2run.get_attenas_string().count("1")
-                self.current_antennas = count
-                self.canvas.itemconfig(self.antenna_text_id, text=f"{self.current_antennas}/{self.max_antennas}")
-
-                # Check for update in antenna count, and if it has increased play click sound
-                if (self.antenna_state is not functions2run.get_attenas_string()
-                        and self.antenna_state.count("1") > functions2run.get_attenas_string().count("1")):
-                    self.antenna_state = functions2run.get_attenas_string()
-                    self.window.after(0, self.play_click_sound)
-                    self.progress_bar.set(self.current_antennas / self.max_antennas)
-                else:
-                    self.antenna_state = functions2run.get_attenas_string()
-                    self.progress_bar.set(self.current_antennas / self.max_antennas)
-
-                self.window.after(0, lambda s=current_state: self.create_observation(s))
-
+            return
         # RESTART STATE
         elif self.state == "restart_view":
             # optional reset logic
