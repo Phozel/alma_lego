@@ -11,6 +11,7 @@ import numpy as np
 import serial
 from PIL import Image, ImageTk
 from astropy.utils import state
+import time
 
 import AT_functions
 from AT_functions import AnimatedGIF, VideoPlayer, CanvasProgressBar
@@ -35,7 +36,19 @@ class ALMA_UI:
     current_view_index = 0
     current_view = None
 
+    VIDEO = "video_view"
+    SELECTION = "selection_view"
+    GUIDE = "guide_view"
+    OBSERVATION = "observation_view"
+    RESTART = "restart_view"
+
+    BUTTON_PRESS = False
+    ANTENNAS_EMPTY = False
+    ANTENNAS_ACTIVE = False
+    STATE_CHANGE = False
+
     def __init__(self):
+        self.serial_paused = False
         self.window = tk.Tk()
         self.window.geometry("1920x1080")
         self.window.configure(bg="#000000")
@@ -61,12 +74,14 @@ class ALMA_UI:
         self.idle_timeout_ms = 10 * 60 * 1000 # 10 minutes for timeout in ms
         self.idle_job = None
         self.last_state = None
+        self.state = "video_view"
 
         self.click_sound_path = self.__load_asset("audio/click.mp3")
         self.antenna_state = functions2run.get_attenas_string()
         self.button_state = functions2run.get_buttons_inp()
         self.max_antennas = 42
         self.current_antennas = 0
+        self.state_counter = 0
 
         self.view_switching = False
 
@@ -95,29 +110,30 @@ class ALMA_UI:
     # Method that switches the contents of the window to select preset views
     def change_view(self, view_name):
         self.view_switching = True
+        self.serial_paused = True
 
-        if self.view_occupied:
-            self.canvas.delete('all')
-            self.window.after(0, self.play_click_sound)
-            self.view_occupied = False
+        if view_name == "observation_view":
+            self.state_counter = 0
+
+        self.canvas.delete("all")
+        self.play_click_sound()
+
+        self.current_view = view_name
+        self.state = view_name
 
         match view_name:
             case "video_view":
-                self.current_view = view_name
                 self.__video_view()
             case "observation_view":
-                self.current_view = view_name
                 self.__observation_view()
             case "guide_view":
-                self.current_view = view_name
                 self.__guide_view()
             case "restart_view":
-                self.current_view = view_name
                 self.__restart_view()
             case "selection_view":
-                self.current_view = view_name
                 self.__selection_view()
 
+        self.serial_paused = False
         self.view_switching = False
 
     # Method that creates the content for the video view
@@ -306,10 +322,10 @@ class ALMA_UI:
             y=950,
             width=370,
             height=20,
-            max_value=100
+            max_value=1
         )
 
-        self.progress_bar.set(100)
+        self.progress_bar.set(self.current_antennas/self.max_antennas)
 
         self.view_occupied = True
 
@@ -330,9 +346,7 @@ class ALMA_UI:
                     size=(1455, 1028))  # Added 2026-04-20 - Adam W
         self.view_occupied = True
 
-    def get_canvas(self):
-        return self.canvas
-
+    # Method that creates the observation that is shown in the observation view
     def create_observation(self, state):
         # Put this as its own method/whatever DONE
         # declare following outside loop ser=functions2run.getserialinterface() DONE
@@ -388,29 +402,97 @@ class ALMA_UI:
     def __serial_loop(self):
 
         while True:
-            if self.view_switching:
-                break
+            if self.view_switching or self.serial_paused:
+                time.sleep(0.01)
+                continue
 
             current_state = functions2run.waitforserialchange(self.ser, IsThereArdruino=False)
 
+            if self.states_equal(current_state, self.last_state) and self.state_counter == 0:
+                self.window.after(0, lambda s=current_state: self.create_observation(s))
+                self.state_counter += 1
             if not self.states_equal(current_state, self.last_state):
                 self.last_state = current_state
-                self.latest_state = current_state
+                # self.latest_state = current_state
                 self.window.after(0, self.reset_idle_timer)
+                self.window.after(0, self.fsm_update(current_state))
 
-                if self.current_view == "observation_view" and not self.view_switching:
-                    count = functions2run.get_attenas_string().count("1")
-                    self.current_antennas = count
-                    self.canvas.itemconfig(self.antenna_text_id, text=f"{self.current_antennas}/{self.max_antennas}")
+                # The following code was moved to fsm_update but kept here for saftey reasons
+                # if self.current_view == "observation_view" and not self.view_switching:
+                #     count = functions2run.get_attenas_string().count("1")
+                #     self.current_antennas = count
+                #     self.canvas.itemconfig(self.antenna_text_id, text=f"{self.current_antennas}/{self.max_antennas}")
+                #
+                #     # Check for update in antenna count, and if it has increased play click sound
+                #     if (self.antenna_state is not functions2run.get_attenas_string()
+                #             and self.antenna_state.count("1") > functions2run.get_attenas_string().count("1")):
+                #         self.antenna_state = functions2run.get_attenas_string()
+                #         self.window.after(0, self.play_click_sound)
+                #     else:
+                #         self.antenna_state = functions2run.get_attenas_string()
+                #
+                #     self.progress_bar.set(self.current_antennas / self.max_antennas)
+                #     self.window.after(0, lambda s=current_state: self.create_observation(s))
 
-                    # Check for update in antenna count, and if it has increased play click sound
-                    if (self.antenna_state is not functions2run.get_attenas_string()
-                            and self.antenna_state.count("1") > functions2run.get_attenas_string().count("1")):
-                        self.antenna_state = functions2run.get_attenas_string()
-                        self.window.after(0, self.play_click_sound)
-                    else:
-                        self.antenna_state = functions2run.get_attenas_string()
-                    self.window.after(0, lambda s=current_state: self.create_observation(s))
+    # Method to handle the finite state machine
+    def fsm_update(self, current_state):
+        attenas = functions2run.get_attenas_string()
+        buttons = functions2run.get_buttons_inp()
+
+        button_pressed = buttons != self.button_state
+        attenas_empty = attenas == "0000000000000000000000000000000000000000000000"
+        attenas_active = not attenas_empty
+
+        prev_state = self.state
+
+        # VIDEO STATE
+        if self.state == "video_view":
+            if button_pressed:
+                if attenas_empty:
+                    self.state = "selection_view"
+                else:
+                    self.state = "restart_view"
+        # SELECTION STATE
+        elif self.state == "selection_view":
+            if button_pressed:
+                self.state = "guide_view"
+        # GUIDE STATE
+        elif self.state == "guide_view":
+            if attenas_active:
+                self.state = "observation_view"
+        # OBSERVATION STATE
+        elif self.state == "observation_view":
+            # TO-DO check if live updating of antenna % works on progressbar
+            # Update graph if not view switching
+            if not self.view_switching:
+                count = functions2run.get_attenas_string().count("1")
+                self.current_antennas = count
+                self.canvas.itemconfig(self.antenna_text_id, text=f"{self.current_antennas}/{self.max_antennas}")
+
+                # Check for update in antenna count, and if it has increased play click sound
+                if (self.antenna_state is not functions2run.get_attenas_string()
+                        and self.antenna_state.count("1") > functions2run.get_attenas_string().count("1")):
+                    self.antenna_state = functions2run.get_attenas_string()
+                    self.window.after(0, self.play_click_sound)
+                    self.progress_bar.set(self.current_antennas / self.max_antennas)
+                else:
+                    self.antenna_state = functions2run.get_attenas_string()
+                    self.progress_bar.set(self.current_antennas / self.max_antennas)
+
+                self.window.after(0, lambda s=current_state: self.create_observation(s))
+
+        # RESTART STATE
+        elif self.state == "restart_view":
+            # optional reset logic
+            pass
+
+        # save changes to button and antenna states
+        self.button_state = buttons
+        self.antenna_state = attenas
+
+        # trigger view change if needed
+        if prev_state != self.state:
+            self.change_view(self.state)
 
     # Method to close the window, and thus the program - Adam Wikström 2026-04-27
     def __close_window(self, event=None):
