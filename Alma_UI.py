@@ -50,20 +50,33 @@ class ALMA_UI:
     def __init__(self):
         self.serial_paused = False
         self.window = tk.Tk()
-        self.window.geometry("1920x1080")
+        #self.window.geometry("1920x1080")
+        self.window.attributes("-fullscreen", True)
         self.window.configure(bg="#000000")
         self.window.title("LEGO ALMA - Adam & Tarek")
+
+        self.base_width = 1920
+        self.base_height = 1080
+
+        self.screen_width = self.window.winfo_screenwidth()
+        self.screen_height = self.window.winfo_screenheight()
+
+        self.scale = min(
+            self.screen_width / self.base_width,
+            self.screen_height / self.base_height
+        )
+
+        canvas_width = int(self.base_width * self.scale)
+        canvas_height = int(self.base_height * self.scale)
 
         self.canvas = tk.Canvas(
             self.window,
             bg="#000000",
-            width=1920,
-            height=1080,
-            bd=0,
-            highlightthickness=0,
-            relief="ridge"
+            width=canvas_width,
+            height=canvas_height,
+            highlightthickness=0
         )
-        self.canvas.place(x=0, y=0)
+        self.canvas.pack(fill="both", expand=True)
         self.window.bind_all("q", self.__close_window)
         self.window.bind_all("n", self.__next_view)
         self.window.bind_all("p", self.__previous_view)
@@ -92,6 +105,9 @@ class ALMA_UI:
 
         self.__start()
 
+    def __scale(self, val):
+        return int(val * self.scale)
+
     def __load_asset(self, path):
         base = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
         assets = os.path.join(base, "AT_assets")
@@ -114,6 +130,13 @@ class ALMA_UI:
 
         if view_name == "observation_view":
             self.state_counter = 0
+
+        if hasattr(self, "video_player"):
+            try:
+                self.video_player.delete()
+            except:
+                pass
+            self.video_player = None
 
         self.canvas.delete("all")
         self.play_click_sound()
@@ -138,149 +161,186 @@ class ALMA_UI:
 
     # Method that creates the content for the video view
     def __video_view(self):
-        video = VideoPlayer(self.canvas, "AT_assets/video/ALMA-WSU-9_2.mp4", 960, 499, size=(1703, 958))
-        self.canvas.create_rectangle(262, 949, 1659, 1080,
+        self.video_player = VideoPlayer(self.canvas, "AT_assets/video/ALMA-WSU-9_2.mp4",
+                                        self.__scale(960), self.__scale(499),
+                                        size=(int(1703 * self.scale), int(958 * self.scale)))
+
+        self.canvas.create_rectangle(self.__scale(262), self.__scale(949), self.__scale(1659), self.__scale(1080),
                                 fill='#eee9e9',
                                 outline="#eeb005",
                                 width="5.0",
                                 dash=(30, 10))
         self.canvas.create_text(
-            298,
-            978,
+            self.__scale(298),
+            self.__scale(978),
             anchor="nw",
             text="Tryck på valfri knapp nedan för att starta",
             fill="#141414",
-            font=("Inter", 60 * -1)
+            font=("Inter", self.__scale(60 * -1))
         )
-        self.canvas.create_oval(1523, 961, 1628, 1066, fill="#EFB005", outline="")
+        self.canvas.create_oval(self.__scale(1523), self.__scale(961),
+                                self.__scale(1628), self.__scale(1066),
+                                fill="#EFB005", outline="")
         self.view_occupied = True
 
     # Method that creates the content for the selection view
     def __selection_view(self):
         # Galaxy
         self.canvas.create_text(
-            311,
-            805,
+            self.__scale(311),
+            self.__scale(805),
             anchor="nw",
             text="Galax",
             fill="#f2ab6d",
-            font=("Inter", 32 * -1)
+            font=("Inter", self.__scale(32 * -1))
         )
 
-        self.canvas.create_rectangle(234, 433, 554, 775, fill='#000000', outline="#fff9f9", width="2.0")
+        self.canvas.create_rectangle(self.__scale(234), self.__scale(433),
+                                     self.__scale(554), self.__scale(775),
+                                     fill='#000000', outline="#fff9f9", width="2.0")
         img_8 = Image.open(self.__load_asset("images/galaxy_img/Galaxy 43.png"))
-        img_8 = img_8.resize((312, 312), Image.LANCZOS)  # <- new size here
+        img_8 = img_8.resize((self.__scale(312), self.__scale(312)), Image.LANCZOS)  # <- new size here
         galaxy_img = ImageTk.PhotoImage(img_8)
-        self.canvas.create_image(394, 604, image=galaxy_img)
+        self.canvas.create_image(self.__scale(394), self.__scale(604), image=galaxy_img)
         self.canvas.galaxy_img = galaxy_img  # keep reference
 
         # Protoplanetary Disc
         self.canvas.create_text(
-            632,
-            796,
+            self.__scale(632),
+            self.__scale(796),
             anchor="nw",
             text="Protoplanetär Skiva",
             fill="#f2ab6d",
-            font=("Inter", 32 * -1)
+            font=("Inter", self.__scale(32 * -1))
         )
 
-        self.canvas.create_rectangle(609, 433, 929, 775, fill='#000000', outline="#fff9f9", width="2.0")
+        self.canvas.create_rectangle(self.__scale(609), self.__scale(433),
+                                     self.__scale(929), self.__scale(775),
+                                     fill='#000000', outline="#fff9f9", width="2.0")
         img_9 = Image.open(self.__load_asset("images/disc_img/Disk_43.png"))
-        img_9 = img_9.resize((312, 312), Image.LANCZOS)  # <- new size here
+        img_9 = img_9.resize((self.__scale(312), self.__scale(312)), Image.LANCZOS)  # <- new size here
         disc_img = ImageTk.PhotoImage(img_9)
-        self.canvas.create_image(769, 604, image=disc_img)
+        self.canvas.create_image(self.__scale(769), self.__scale(604), image=disc_img)
         self.canvas.disc_img = disc_img
 
         self.canvas.create_text(
-            1072,
-            796,
+            self.__scale(1072),
+            self.__scale(796),
             anchor="nw",
             text="Stjärna",
             fill="#f2ab6d",
-            font=("Inter", 32 * -1)
+            font=("Inter", self.__scale(32 * -1))
         )
 
-        self.canvas.create_rectangle(983, 433, 1303, 775, fill='#000000', outline="#fff9f9", width="2.0")
+        self.canvas.create_rectangle(self.__scale(983), self.__scale(433),
+                                     self.__scale(1303), self.__scale(775),
+                                     fill='#000000', outline="#fff9f9", width="2.0")
         img_10 = Image.open(self.__load_asset("images/star_img/star_43.png"))
-        img_10 = img_10.resize((312, 312), Image.LANCZOS)  # <- new size here
+        img_10 = img_10.resize((self.__scale(312), self.__scale(312)), Image.LANCZOS)  # <- new size here
         star_img = ImageTk.PhotoImage(img_10)
-        self.canvas.create_image(1143, 604, image=star_img)
+        self.canvas.create_image(self.__scale(1143), self.__scale(604), image=star_img)
         self.canvas.star_img = star_img
 
         self.canvas.create_text(
-            1346,
-            796,
+            self.__scale(1346),
+            self.__scale(796),
             anchor="nw",
             text="Jetstråle",
             fill="#f2ab6d",
-            font=("Inter", 32 * -1)
+            font=("Inter", self.__scale(32 * -1))
         )
 
-        self.canvas.create_rectangle(1357, 433, 1677, 775, fill='#000000', outline="#fff9f9", width="2.0")
+        self.canvas.create_rectangle(self.__scale(1357), self.__scale(433),
+                                     self.__scale(1677), self.__scale(775),
+                                     fill='#000000', outline="#fff9f9", width="2.0")
         img_11 = Image.open(self.__load_asset("images/jet_img/Jet_43.png"))
-        img_11 = img_11.resize((312, 312), Image.LANCZOS)  # <- new size here
+        img_11 = img_11.resize((self.__scale(312), self.__scale(312)), Image.LANCZOS)  # <- new size here
         jet_img = ImageTk.PhotoImage(img_11)
-        self.canvas.create_image(1517, 604, image=jet_img)
+        self.canvas.create_image(self.__scale(1517), self.__scale(604), image=jet_img)
         self.canvas.jet_img = jet_img
 
         self.canvas.create_text(
-            240,
-            152,
+            self.__scale(240),
+            self.__scale(152),
             anchor="nw",
             text="Välj vad ni vill se via knapparna \ntill vänster",
             fill="#f2ab6d",
-            font=("Inter", 96 * -1),
+            font=("Inter", self.__scale(96 * -1)),
         )
 
-        arrow_pos = [105, 226, 339, 463]
+        arrow_pos = [self.__scale(105), self.__scale(226), self.__scale(339), self.__scale(463)]
         arrow_images = []
-        for i in range(4):
-            temp_image = Image.open(self.__load_asset("gifs/Arrow_blink.gif"))
-            temp_image = temp_image.convert("RGBA")
-            temp_image = temp_image.resize((184, 130), Image.LANCZOS)  # <- new size here
-            temp_image = temp_image.rotate(76, expand=True)
-            arrow_img = ImageTk.PhotoImage(temp_image)
-            self.canvas.create_image(arrow_pos[i], 975, image=arrow_img)
-            arrow_images.append(arrow_img)
+        temp_image_1 = Image.open(self.__load_asset("images/Arrow_blink.png"))
+        temp_image_1 = temp_image_1.convert("RGBA")
+        temp_image_1 = temp_image_1.resize((self.__scale(184), self.__scale(130)), Image.LANCZOS)  # <- new size here
+        temp_image_1 = temp_image_1.rotate(76, expand=True)
+        self.canvas.arrow_img_1 = ImageTk.PhotoImage(temp_image_1)
+        arrow_images.append(self.canvas.arrow_img_1)
+
+        temp_image_2 = Image.open(self.__load_asset("images/Arrow_blink.png"))
+        temp_image_2 = temp_image_2.convert("RGBA")
+        temp_image_2 = temp_image_2.resize((self.__scale(184), self.__scale(130)), Image.LANCZOS)  # <- new size here
+        temp_image_2 = temp_image_2.rotate(76, expand=True)
+        self.canvas.arrow_img_2 = ImageTk.PhotoImage(temp_image_2)
+        arrow_images.append(self.canvas.arrow_img_2)
+
+        temp_image_3 = Image.open(self.__load_asset("images/Arrow_blink.png"))
+        temp_image_3 = temp_image_3.convert("RGBA")
+        temp_image_3 = temp_image_3.resize((self.__scale(184), self.__scale(130)), Image.LANCZOS)  # <- new size here
+        temp_image_3 = temp_image_3.rotate(76, expand=True)
+        self.canvas.arrow_img_3 = ImageTk.PhotoImage(temp_image_3)
+        arrow_images.append(self.canvas.arrow_img_3)
+
+        temp_image_4 = Image.open(self.__load_asset("images/Arrow_blink.png"))
+        temp_image_4 = temp_image_4.convert("RGBA")
+        temp_image_4 = temp_image_4.resize((self.__scale(184), self.__scale(130)), Image.LANCZOS)  # <- new size here
+        temp_image_4 = temp_image_4.rotate(76, expand=True)
+        self.canvas.arrow_img_4 = ImageTk.PhotoImage(temp_image_4)
+        arrow_images.append(self.canvas.arrow_img_4)
+
+        self.canvas.create_image(arrow_pos[0], self.__scale(975), image=arrow_images[0])
+        self.canvas.create_image(arrow_pos[1], self.__scale(975), image=arrow_images[1])
+        self.canvas.create_image(arrow_pos[2], self.__scale(975), image=arrow_images[2])
+        self.canvas.create_image(arrow_pos[3], self.__scale(975), image=arrow_images[3])
 
         self.view_occupied = True
 
     # Method that creates the content for the guide view
     def __guide_view(self):
         self.canvas.create_text(
-            260,
-            122,
+            self.__scale(260),
+            self.__scale(122),
             anchor="nw",
             text="Sätt antenner på de vita brickorna",
             fill="#f2ab6d",
-            font=("Inter", 96 * -1)
+            font=("Inter", self.__scale(96 * -1))
         )
 
         AnimatedGIF(self.canvas,
                     "AT_assets/gifs/placing-antennas.gif",
-                    959, 729,
-                    size=(1279, 904))  # Added 2026-04-20 - Adam W
+                    self.__scale(959), self.__scale(729),
+                    size=(self.__scale(1279), self.__scale(904)))  # Added 2026-04-20 - Adam W
         self.view_occupied = True
 
     # Method that creates the content for the observation view
     def __observation_view(self):
 
         # Selected object illustration rectangle
-        self.canvas.create_rectangle(269, 63, 528, 324, fill='#000000', outline="#ffffff", width="3.0")
+        #self.canvas.create_rectangle(self.__scale(269), self.__scale(63), self.__scale(528), self.__scale(324), fill='#000000', outline="#ffffff", width="3.0")
         # Information/Guide GIF rectangle
-        #self.canvas.create_rectangle(156, 670, 641, 1013, fill='#000000', outline="#ffffff", width="3.0")
+        #self.canvas.create_rectangle(self.__scale(156), self.__scale(670), self.__scale(641), self.__scale(1013), fill='#000000', outline="#ffffff", width="3.0")
         # Observation Rectangle
-        self.canvas.create_rectangle(794, 63, 1744, 1013, fill='#141414', outline="#ffffff", width="3.0")
+        self.canvas.create_rectangle(self.__scale(794), self.__scale(63), self.__scale(1744), self.__scale(1013), fill='#141414', outline="#ffffff", width="3.0")
 
         # place_gif = AnimatedGIF(self.canvas,
         #             "AT_assets/gifs/placing-antennas.gif",
-        #             398, 843,
-        #             size=(449, 343))
+        #             self.__scale(398), self.__scale(843),
+        #             size=(self.__scale(449), self.__scale(343)))
 
         spread_gather_gif = AnimatedGIF(self.canvas,
                                         "AT_assets/gifs/spread_and_gather_antennas-updated.gif",
-                                        415, 843,
-                                        size=(449, 343))
+                                        self.__scale(415), self.__scale(843),
+                                        size=(self.__scale(449), self.__scale(343)))
         spread_gather_gif.set_speed(1.3)
 
         # image_5 = tk.PhotoImage(file=load_asset("None"))
@@ -292,16 +352,16 @@ class ALMA_UI:
         # canvas.create_image(398, 843, image=image_6)
 
         image_7 = Image.open(self.__load_asset("images/antenna icon 1.png"))
-        image_7 = image_7.resize((56, 66), Image.LANCZOS)  # <- new size here
+        image_7 = image_7.resize((self.__scale(56), self.__scale(66)), Image.LANCZOS)  # <- new size here
         self.canvas.antenna_img = ImageTk.PhotoImage(image_7)
-        self.canvas.create_image(1073, 949, image=self.canvas.antenna_img)
+        self.canvas.create_image(self.__scale(1073), self.__scale(949), image=self.canvas.antenna_img)
 
         self.antenna_text_id = self.canvas.create_text(
-            920,
-            930,
+            self.__scale(920),
+            self.__scale(930),
             text=f"0/42",
             fill="#ffffff",
-            font=("Inter", 40 * -1),
+            font=("Inter", self.__scale(40 * -1)),
             anchor="nw"
         )
 
@@ -318,10 +378,10 @@ class ALMA_UI:
 
         self.progress_bar = CanvasProgressBar(
             self.canvas,
-            x=1155,
-            y=950,
-            width=370,
-            height=20,
+            x=self.__scale(1155),
+            y=self.__scale(950),
+            width=self.__scale(370),
+            height=self.__scale(20),
             max_value=1
         )
         # self.progress_bar.set(self.current_antennas / self.max_antennas)
@@ -331,18 +391,18 @@ class ALMA_UI:
     # Method that creates the content for the restart view
     def __restart_view(self):
         self.canvas.create_text(
-            357,
-            65,
+            self.__scale(357),
+            self.__scale(65),
             anchor="nw",
             text="   Flytta ALLA antenner till \ninhägnaden för att börja om",
             fill="#f2ab6d",
-            font=("Inter", 96 * -1)
+            font=("Inter", self.__scale(96 * -1))
         )
 
         AnimatedGIF(self.canvas,
                     "AT_assets/gifs/remove-antennas.gif",
-                    959, 644,
-                    size=(1455, 1028))  # Added 2026-04-20 - Adam W
+                    self.__scale(959), self.__scale(644),
+                    size=(self.__scale(1455), self.__scale(1028)))  # Added 2026-04-20 - Adam W
         self.view_occupied = True
 
     # Method that creates the observation that is shown in the observation view
@@ -382,6 +442,7 @@ class ALMA_UI:
             colored_data = cm.inferno(norm_data)
             colored_data = (colored_data[:, :, :3] * 255).astype(np.uint8)
             data_img = Image.fromarray(colored_data)
+            data_img = data_img.resize((self.__scale(720), self.__scale(720)), Image.LANCZOS)
 
             if hasattr(self, "observation_img_id"):
                 try:
@@ -390,7 +451,8 @@ class ALMA_UI:
                     pass
 
             self.canvas.photo_data_img = ImageTk.PhotoImage(data_img)
-            self.observation_img_id = self.canvas.create_image(909, 150, image=self.canvas.photo_data_img, anchor="nw")
+
+            self.observation_img_id = self.canvas.create_image(self.__scale(909), self.__scale(150), image=self.canvas.photo_data_img, anchor="nw")
         #
 
     # Method to start loop on separate thread for antenna update check - Adam Wikström 2026-04-27
@@ -408,7 +470,7 @@ class ALMA_UI:
             current_state = functions2run.waitforserialchange(self.ser, IsThereArdruino=False)
 
             if (self.current_view == "observation_view" and
-                    self.states_equal(current_state, self.last_state) and 
+                    self.states_equal(current_state, self.last_state) and
                     self.state_counter == 0):
                 self.window.after(0, lambda s=current_state: self.create_observation(s))
                 self.progress_bar.set(self.current_antennas / self.max_antennas)
