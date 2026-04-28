@@ -2,29 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e60d21c9-3d9d-4249-a591-21d221a1b34c" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/AT_assets/images/Arrow_blink.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/disc_img/Disk_0.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/disc_img/Disk_1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/disc_img/Disk_2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/disc_img/Disk_3.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/disc_img/Disk_4.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/disc_img/Disk_5.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/disc_img/Disk_6.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/disc_img/Disk_7.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/disc_img/Disk_8.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/disc_img/Disk_9.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/jet_img/Jet_0.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/jet_img/Jet_1.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/jet_img/Jet_2.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/jet_img/Jet_3.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/jet_img/Jet_4.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/jet_img/Jet_5.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/jet_img/Jet_6.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/jet_img/Jet_7.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/jet_img/Jet_8.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/AT_assets/images/jet_img/Jet_9.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Alma_UI.py" beforeDir="false" afterPath="$PROJECT_DIR$/Alma_UI.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
